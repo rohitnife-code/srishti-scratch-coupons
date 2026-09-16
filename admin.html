@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="hi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SRISHTI ENTERPRISES - Coupon Admin</title>
+
+<style>
+*{box-sizing:border-box}
+body{
+margin:0;
+font-family:Arial,sans-serif;
+background:linear-gradient(135deg,#eef3ff,#fff4df);
+min-height:100vh;
+padding:20px 14px;
+}
+.box{
+max-width:520px;
+margin:auto;
+background:white;
+border-radius:25px;
+padding:24px;
+box-shadow:0 12px 40px rgba(0,0,0,.15);
+}
+h1{text-align:center;color:#172033}
+.sub{text-align:center;color:#667085;margin-bottom:20px}
+label{display:block;font-weight:bold;margin-top:16px}
+select,input{
+width:100%;
+padding:14px;
+margin-top:7px;
+border:1px solid #ccd2dc;
+border-radius:10px;
+font-size:16px;
+}
+button{
+width:100%;
+border:0;
+border-radius:12px;
+padding:14px;
+margin-top:15px;
+font-size:17px;
+font-weight:bold;
+background:#16a34a;
+color:white;
+}
+.blue{background:#2563eb}
+.red{background:#dc2626}
+.result{
+display:none;
+margin-top:20px;
+padding:16px;
+background:#eefbf1;
+border-radius:14px;
+}
+.link{
+word-break:break-all;
+background:white;
+padding:10px;
+border-radius:8px;
+font-size:14px;
+}
+.stock{margin-top:20px}
+.row{
+display:flex;
+justify-content:space-between;
+padding:12px;
+border-radius:9px;
+margin:6px 0;
+background:#f4f6f8;
+}
+.footer{
+text-align:center;
+color:#777;
+font-size:14px;
+margin-top:20px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+
+<h1>🎁 SRISHTI ENTERPRISES</h1>
+
+<div class="sub">
+Scratch Coupon Admin Panel
+</div>
+
+<label>🥤 सामान / Gift चुनें</label>
+
+<select id="gift">
+<option>Campa 1 Ltr</option>
+<option>Campa 150 ml</option>
+<option>Campa Mango 500 ml</option>
+<option>Campa Nimbupani 150 ml</option>
+</select>
+
+<label>📦 Quantity</label>
+
+<input
+id="qty"
+type="number"
+min="1"
+value="1"
+>
+
+<button onclick="makeCoupon()">
+🔗 Coupon Link बनाएं
+</button>
+
+<div class="result" id="result">
+
+<b>🎟️ आपका Coupon Link:</b>
+
+<div class="link" id="link"></div>
+
+<button class="blue" onclick="copyLink()">
+📋 Link Copy करें
+</button>
+
+<button onclick="whatsapp()">
+📲 WhatsApp पर भेजें
+</button>
+
+</div>
+
+<div class="stock">
+
+<b>📦 बाकी Coupons</b>
+
+<div class="row">
+<span>🥤 Campa 1 Ltr</span>
+<b id="s0">10</b>
+</div>
+
+<div class="row">
+<span>🥤 Campa 150 ml</span>
+<b id="s1">10</b>
+</div>
+
+<div class="row">
+<span>🥭 Campa Mango 500 ml</span>
+<b id="s2">10</b>
+</div>
+
+<div class="row">
+<span>🍋 Campa Nimbupani 150 ml</span>
+<b id="s3">10</b>
+</div>
+
+</div>
+
+<button class="red" onclick="resetStock()">
+🔄 Stock Reset करें
+</button>
+
+<div class="footer">
+SRISHTI ENTERPRISES • Maharajganj
+</div>
+
+</div>
+
+<script>
+
+const products=[
+"Campa 1 Ltr",
+"Campa 150 ml",
+"Campa Mango 500 ml",
+"Campa Nimbupani 150 ml"
+];
+
+const storageKey="srishti_campa_stock";
+
+let stock=
+JSON.parse(localStorage.getItem(storageKey)||"null")
+||[10,10,10,10];
+
+let couponLink="";
+
+function saveStock(){
+localStorage.setItem(
+storageKey,
+JSON.stringify(stock)
+);
+updateStock();
+}
+
+function updateStock(){
+
+stock.forEach((n,i)=>{
+document.getElementById("s"+i).textContent=n;
+});
+
+}
+
+updateStock();
+
+
+function makeCoupon(){
+
+const gift=
+document.getElementById("gift").value;
+
+const qty=
+Math.max(
+1,
+parseInt(
+document.getElementById("qty").value || 1
+)
+);
+
+const productIndex=
+products.indexOf(gift);
+
+if(stock[productIndex] < qty){
+
+alert(
+"इस सामान के केवल "
++stock[productIndex]
++" coupon बाकी हैं।"
+);
+
+return;
+
+}
+
+stock[productIndex]-=qty;
+
+saveStock();
+
+
+const code=
+"SRISHTI"
++Date.now()
+.toString(36)
+.toUpperCase();
+
+
+couponLink=
+"https://rohitnife-code.github.io/"
++"srishti-scratch-coupons/"
++"?code="
++encodeURIComponent(code)
++"&gift="
++encodeURIComponent(gift)
++"&qty="
++encodeURIComponent(qty);
+
+
+document.getElementById("link")
+.textContent=couponLink;
+
+document.getElementById("result")
+.style.display="block";
+
+}
+
+
+async function copyLink(){
+
+try{
+
+await navigator.clipboard
+.writeText(couponLink);
+
+alert("Coupon Link Copy हो गया ✅");
+
+}catch(e){
+
+alert("Link को दबाकर Copy करें।");
+
+}
+
+}
+
+
+function whatsapp(){
+
+if(!couponLink){
+
+alert("पहले Coupon Link बनाएं");
+
+return;
+
+}
+
+const message=
+"🎁 SRISHTI ENTERPRISES का Special Scratch Coupon!\n\n"
++"अपना Gift देखने के लिए नीचे दिया गया पूरा Link खोलें:\n\n"
++couponLink
++"\n\n🎉 शुभकामनाएँ!";
+
+location.href=
+"https://wa.me/?text="
++encodeURIComponent(message);
+
+}
+
+
+function resetStock(){
+
+if(confirm(
+"क्या सभी 40 coupons का stock फिर से 10-10 करना है?"
+)){
+
+stock=[10,10,10,10];
+
+saveStock();
+
+document.getElementById("result")
+.style.display="none";
+
+alert("Stock Reset हो गया ✅");
+
+}
+
+}
+
+</script>
+
+</body>
+</html>
