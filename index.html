@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="hi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SRISHTI ENTERPRISES - Scratch Coupon</title>
+
+<style>
+*{box-sizing:border-box}
+
+body{
+ margin:0;
+ font-family:Arial,sans-serif;
+ background:linear-gradient(135deg,#eef3ff,#fff7e6);
+ min-height:100vh;
+ display:flex;
+ justify-content:center;
+ align-items:center;
+ color:#172033;
+}
+
+.card{
+ width:92%;
+ max-width:520px;
+ background:white;
+ border-radius:28px;
+ padding:30px 20px;
+ text-align:center;
+ box-shadow:0 15px 45px rgba(0,0,0,.15);
+}
+
+.gift{
+ font-size:65px;
+}
+
+h1{
+ margin:8px 0;
+ font-size:30px;
+}
+
+.subtitle{
+ color:#667085;
+ font-size:19px;
+ margin-bottom:15px;
+}
+
+.info{
+ color:#b42318;
+ font-size:17px;
+ line-height:1.5;
+ margin:15px 0;
+}
+
+.scratch-box{
+ position:relative;
+ width:100%;
+ max-width:410px;
+ height:210px;
+ margin:25px auto;
+ border-radius:22px;
+ overflow:hidden;
+ box-shadow:0 8px 20px rgba(0,0,0,.15);
+}
+
+.reward{
+ width:100%;
+ height:100%;
+ background:linear-gradient(135deg,#fff0a8,#ffd166);
+ display:flex;
+ flex-direction:column;
+ justify-content:center;
+ align-items:center;
+}
+
+.reward .emoji{
+ font-size:48px;
+}
+
+.reward h2{
+ margin:8px 0;
+ font-size:27px;
+}
+
+.reward p{
+ margin:4px;
+ font-size:18px;
+}
+
+canvas{
+ position:absolute;
+ top:0;
+ left:0;
+ width:100%;
+ height:100%;
+ cursor:pointer;
+ touch-action:none;
+}
+
+.hint{
+ color:#667085;
+ font-size:15px;
+ margin-top:12px;
+}
+
+button{
+ border:0;
+ background:#16a34a;
+ color:white;
+ padding:14px 25px;
+ border-radius:12px;
+ font-size:17px;
+ margin-top:15px;
+ cursor:pointer;
+}
+
+.hidden{
+ display:none;
+}
+
+.footer{
+ margin-top:22px;
+ color:#777;
+ font-size:14px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+
+<div class="gift">🎁</div>
+
+<h1>SRISHTI ENTERPRISES</h1>
+
+<div class="subtitle">Special Scratch Coupon</div>
+
+<div id="message" class="info">
+अपना Gift देखने के लिए नीचे Scratch करें 🎉
+</div>
+
+<div class="scratch-box" id="scratchBox">
+
+<div class="reward">
+<div class="emoji" id="rewardEmoji">🎉</div>
+<h2 id="rewardTitle">आपका Gift</h2>
+<p id="rewardText">Scratch करके देखें!</p>
+</div>
+
+<canvas id="scratchCanvas"></canvas>
+
+</div>
+
+<div class="hint">
+👆 उंगली से Scratch करें
+</div>
+
+<button id="againBtn" class="hidden" onclick="location.reload()">
+नया Coupon खोलें
+</button>
+
+<div class="footer">
+SRISHTI ENTERPRISES • Maharajganj
+</div>
+
+</div>
+
+<script>
+
+const params = new URLSearchParams(window.location.search);
+const couponCode = params.get("code");
+
+const canvas = document.getElementById("scratchCanvas");
+const ctx = canvas.getContext("2d");
+
+const box = document.getElementById("scratchBox");
+const message = document.getElementById("message");
+const againBtn = document.getElementById("againBtn");
+
+let scratching = false;
+let revealed = false;
+let lastX = 0;
+let lastY = 0;
+
+function setupCanvas(){
+
+ canvas.width = box.clientWidth;
+ canvas.height = box.clientHeight;
+
+ ctx.fillStyle = "#aeb4bd";
+ ctx.fillRect(0,0,canvas.width,canvas.height);
+
+ ctx.fillStyle = "#707780";
+ ctx.font = "bold 28px Arial";
+ ctx.textAlign = "center";
+ ctx.textBaseline = "middle";
+ ctx.fillText(
+   "SCRATCH HERE 🎁",
+   canvas.width/2,
+   canvas.height/2
+ );
+
+ ctx.globalCompositeOperation = "destination-out";
+}
+
+setupCanvas();
+window.addEventListener("resize",setupCanvas);
+
+
+// Gift list
+const gifts = [
+ {
+   emoji:"🎁",
+   title:"बधाई हो!",
+   text:"आपने Gift जीता है"
+ },
+ {
+   emoji:"🎉",
+   title:"शानदार!",
+   text:"आपके लिए Special Gift है"
+ },
+ {
+   emoji:"🥳",
+   title:"Congratulations!",
+   text:"आपका Lucky Gift निकल गया"
+ },
+ {
+   emoji:"⭐",
+   title:"Lucky Winner!",
+   text:"SRISHTI ENTERPRISES का Gift"
+ }
+];
+
+
+// Coupon code के आधार पर gift
+let selectedGift;
+
+if(couponCode){
+
+ let number = 0;
+
+ for(let i=0;i<couponCode.length;i++){
+   number += couponCode.charCodeAt(i);
+ }
+
+ selectedGift = gifts[number % gifts.length];
+
+}else{
+ selectedGift = gifts[0];
+}
+
+
+// URL में code नहीं है
+if(!couponCode){
+
+ message.innerHTML =
+ "Coupon code नहीं मिला। WhatsApp से मिला पूरा coupon link खोलें।";
+
+}
+
+
+// Scratch function
+function scratch(x,y){
+
+ if(revealed) return;
+
+ ctx.beginPath();
+ ctx.arc(x,y,24,0,Math.PI*2);
+ ctx.fill();
+
+ checkReveal();
+}
+
+
+// Reveal percentage
+function checkReveal(){
+
+ const imageData = ctx.getImageData(
+   0,0,canvas.width,canvas.height
+ );
+
+ let transparent = 0;
+
+ for(let i=3;i<imageData.data.length;i+=4){
+
+   if(imageData.data[i] < 80){
+     transparent++;
+   }
+ }
+
+ const percent =
+   transparent/(imageData.data.length/4)*100;
+
+ if(percent > 45){
+   revealGift();
+ }
+}
+
+
+function revealGift(){
+
+ if(revealed) return;
+
+ revealed = true;
+
+ canvas.style.display="none";
+
+ document.getElementById("rewardEmoji").textContent =
+ selectedGift.emoji;
+
+ document.getElementById("rewardTitle").textContent =
+ selectedGift.title;
+
+ document.getElementById("rewardText").textContent =
+ selectedGift.text;
+
+ message.innerHTML =
+ "🎊 बधाई हो! आपका Scratch Coupon खुल गया।";
+
+ // उसी browser में coupon इस्तेमाल mark
+ if(couponCode){
+   localStorage.setItem(
+     "used_"+couponCode,
+     "yes"
+   );
+ }
+
+}
+
+
+// Mouse
+canvas.addEventListener("mousedown",(e)=>{
+
+ scratching=true;
+
+ const r=canvas.getBoundingClientRect();
+
+ lastX=e.clientX-r.left;
+ lastY=e.clientY-r.top;
+
+ scratch(lastX,lastY);
+
+});
+
+canvas.addEventListener("mousemove",(e)=>{
+
+ if(!scratching) return;
+
+ const r=canvas.getBoundingClientRect();
+
+ scratch(
+   e.clientX-r.left,
+   e.clientY-r.top
+ );
+
+});
+
+canvas.addEventListener("mouseup",()=>{
+ scratching=false;
+});
+
+canvas.addEventListener("mouseleave",()=>{
+ scratching=false;
+});
+
+
+// Mobile touch
+canvas.addEventListener("touchstart",(e)=>{
+
+ e.preventDefault();
+
+ scratching=true;
+
+ const r=canvas.getBoundingClientRect();
+ const t=e.touches[0];
+
+ scratch(
+   t.clientX-r.left,
+   t.clientY-r.top
+ );
+
+});
+
+canvas.addEventListener("touchmove",(e)=>{
+
+ e.preventDefault();
+
+ if(!scratching) return;
+
+ const r=canvas.getBoundingClientRect();
+ const t=e.touches[0];
+
+ scratch(
+   t.clientX-r.left,
+   t.clientY-r.top
+ );
+
+});
+
+canvas.addEventListener("touchend",()=>{
+ scratching=false;
+});
+
+</script>
+
+</body>
+</html>
