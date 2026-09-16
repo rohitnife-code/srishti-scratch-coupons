@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="hi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SRISHTI Coupon Admin</title><style>
+body{font-family:Arial;margin:0;background:#f5f7fb;color:#172033}.wrap{max-width:760px;margin:auto;padding:20px}.card{background:white;border-radius:18px;padding:20px;margin:15px 0;box-shadow:0 5px 20px #0001}input,button{padding:12px;border-radius:10px;border:1px solid #ccd3df;font-size:16px}button{background:#16843b;color:#fff;border:0;font-weight:700}.row{display:flex;gap:10px;flex-wrap:wrap}.item{padding:10px;border-bottom:1px solid #eee}.wa{color:#087f3d;text-decoration:none;font-weight:700}
+</style></head><body><div class="wrap"><h1>SRISHTI ENTERPRISES 🎁</h1>
+<div class="card"><h2>Coupon बनाएं</h2><div class="row"><label>कितने? <input id="count" type="number" min="1" max="500" value="10"></label><button onclick="create()">Generate</button></div>
+<p>Gifts: ₹10 OFF, ₹20 OFF, ₹50 OFF, Special Gift</p></div>
+<div class="card"><h2>Generated Coupons</h2><div id="list">Generate दबाएँ…</div></div></div>
+<script>
+async function create(){const count=+document.getElementById("count").value||1;const r=await fetch("/api/create",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({count,gifts:["₹10 OFF","₹20 OFF","₹50 OFF","Special Gift"]})});const d=await r.json();document.getElementById("list").innerHTML=d.coupons.map(x=>`<div class="item"><b>${x.code}</b> — ${x.gift}<br><a class="wa" target="_blank" href="https://wa.me/?text=${encodeURIComponent("🎁 SRISHTI ENTERPRISES का Special Scratch Coupon!\\nअपना coupon scratch करने के लिए यह link खोलें:\\n"+x.link)}">WhatsApp पर भेजें</a></div>`).join("");}
+</script></body></html>
